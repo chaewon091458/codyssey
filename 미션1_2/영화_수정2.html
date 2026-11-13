@@ -1,3 +1,4 @@
+HTML
 <!doctype html>
 <html lang="ko">
 <head>
@@ -52,11 +53,11 @@
     <p class="note">같은 브라우저에서 이 파일을 다시 열면 정리한 목록이 남습니다. 다른 사람에게 파일을 보내도 내 입력 내역까지 전달되지는 않습니다.</p>
   </main>
   <script>
-    const KEY = "codyssey-activity-02-v3";
+    const KEY = "codyssey-activity-04-v2";
     const LEVELS = ['S', 'A', 'B', 'C', 'pool'];
     const TITLES = ["기생충","인터스텔라","라라랜드","센과 치히로의 행방불명","어벤져스: 엔드게임","범죄도시","타이타닉","토이 스토리"];
     const COLORS = ["#f2e6dc","#e3eee7","#ede7f6","#fcefd9","#e2ecf4","#f6e3e3"];
-    const initial = () => ({ nextId: TITLES.length + 1, items: TITLES.map((title,index) => ({ id: title, title, tier: 'pool' })) });
+    const initial = () => ({ nextId: TITLES.length + 1, items: TITLES.map((title,index) => ({ id: 'm' + (index + 1), title, tier: 'pool' })) });
     let state = initial();
     let selected = null;
     try {
@@ -76,33 +77,37 @@
       showMessage((item.title || '영화') + '를 옮겼어요.');
     }
     function card(item,index) {
-      const template = document.createElement('template');
-      // 수정된 부분: data-id 속성값 양쪽에 큰따옴표("")를 추가하여 띄어쓰기와 특수문자가 포함된 제목을 온전하게 감쌉니다.
-      template.innerHTML = '<button type="button" class="card" draggable="true" data-id="' + item.id + '">' + item.title + '</button>';
-      const element = template.content.firstElementChild;
+      const element = document.createElement('button');
+      element.type = 'button'; element.className = 'card'; element.draggable = true;
+      element.textContent = item.title || ' '; element.dataset.id = item.id;
       element.style.backgroundColor = COLORS[index % COLORS.length];
-      element.setAttribute('aria-pressed',String(selected === element.dataset.id));
+      element.setAttribute('aria-label',item.title || '영화 카드');
+      element.setAttribute('aria-pressed',String(selected === item.id));
       element.addEventListener('click',event => {
-        event.stopPropagation();
-        const item = state.items.find(item => item.id === element.dataset.id);
-        if (!item) return;
-        selected = selected === item.id ? null : item.id; render();
-        showMessage(selected ? item.title + '를 선택했어요.' : '선택을 해제했어요.');
+        event.stopPropagation(); selected = selected === item.id ? null : item.id; render();
+        showMessage(selected ? (item.title || '영화') + '를 선택했어요.' : '선택을 해제했어요.');
       });
-      element.addEventListener('dragstart',event => { event.dataTransfer.setData('text/plain',element.dataset.id); });
+      element.addEventListener('dragstart',event => { 
+        event.dataTransfer.setData('text/plain',item.id);
+        event.dataTransfer.effectAllowed = 'move';
+      });
       return element;
     }
-    function wireDrop(element, tier) {
-      element.addEventListener('dragover', event => { event.preventDefault(); });
-      element.addEventListener('dragleave', () => element.closest('.row')?.classList.remove('over'));
-      element.addEventListener('drop', event => {
-        event.preventDefault();
-        const id = event.dataTransfer.getData('text/plain');
-        move(id, tier);
+    function wireDrop(element,tier) {
+      element.addEventListener('dragover',event => { event.preventDefault(); event.dataTransfer.dropEffect = 'move'; element.closest('.row')?.classList.add('over'); });
+      element.addEventListener('dragleave',() => element.closest('.row')?.classList.remove('over'));
+      element.addEventListener('drop',event => { 
+        event.preventDefault(); 
+        element.closest('.row')?.classList.remove('over');
+        let id = event.dataTransfer.getData('text/plain');
+        if (!state.items.some(item => item.id === id)) {
+          const found = state.items.find(item => item.title === id);
+          if (found) id = found.id;
+        }
+        move(id,tier); 
       });
-      element.onclick = () => { if (selected) move(selected, tier); };
+      element.onclick = () => { if (selected) move(selected,tier); };
     }
-
     function render() {
       const tiers = document.querySelector('#tiers'); tiers.replaceChildren();
       for (const tier of LEVELS.filter(value => value !== 'pool')) {
@@ -125,7 +130,7 @@
       event.preventDefault(); const input = document.querySelector('#title'); const title = input.value.trim();
       if (!title) { showMessage('영화 제목을 입력해 주세요.'); input.focus(); return; }
       if (state.items.some(item => item.title === title)) { showMessage('이미 있는 영화 제목이에요. 다른 제목을 넣어 주세요.'); return; }
-      state.items.push({ id: title, title, tier: 'pool' });
+      state.items.push({ id: 'm' + state.nextId++, title, tier: 'pool' });
       save(); render(); input.value = ''; showMessage('영화를 추가했어요.'); input.focus();
     });
     document.querySelector('#reset').addEventListener('click',() => {
