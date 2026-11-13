@@ -1,0 +1,205 @@
+기획서와 영화_수정전.html 파일을 줄게. 직접 브라우저에서 실행해 보니 기획서와 다르게 동작하는 문제가 있어.
+
+어떻게 했는지: 아래쪽에 있는 영화 카드들을 등급 칸으로 드래그하여 옮겨 보았다.
+
+원래 어떻게 되어야 하는지: 모든 영화 카드가 등급 칸으로 정상적으로 이동되어야 한다.
+
+▪  ​실제로 어떻게 됐는지: '기생충', '인터스텔라'처럼 띄어쓰기가 없는 영화 제목은 잘 옮겨지는데, '센과 치히로의 행방불명', '어벤져스: 엔드게임', '토이 스토리'처럼 제목에 띄어쓰기가 포함된 영화는 아예 옮겨지지 않는다.
+
+되는 경우와 안 되는 경우의 차이: 영화 ID나 데이터 값에 공백(띄어쓰기)이 포함되어 있는지 여부인 것 같다.
+
+왜 이런 문제가 생기는지 쉬운 말로 원인을 설명하고, 그 설명이 맞는지 내가 브라우저(개발자 도구 등)에서 직접 확인할 방법을 알려 줘.
+
+⚠️ 아직 코드를 고치지 말고 원인과 확인 방법만 먼저 알려 줘.
+
+브라우저에서 직접 테스트해 보시면서 예리하게 원인을 찾아내셨네요! 공백(띄어쓰기)이나 특수문자가 포함된 제목에서 드래그가 동작하지 않는 이유와, 이를 개발자 도구에서 직접 눈으로 확인하는 방법을 알기 쉽게 정리해 드릴게요.
+
+🔍 왜 이런 문제가 생길까요? (원인 설명)
+브라우저의 기본 드래그 동작 충돌
+
+웹페이지에서 마우스로 요소를 드래그할 때, 브라우저는 기본적으로 "요소 안에 들어 있는 텍스트(글자)"를 드래그 데이터로 삼으려는 습성이 있습니다.
+
+코드는 고유 ID('m1', 'm2' 등)를 전달하려고 event.dataTransfer.setData('text/plain', item.id)를 사용했지만, 브라우저의 기본 드래그 동작 방식이나 텍스트 선택 성질 때문에 일부 브라우저에서는 ID 대신 영화 제목 자체가 드래그 데이터로 덮어씌워지거나 전달되는 현상이 발생합니다.
+
+띄어쓰기·특수문자가 있는 제목의 영향
+
+특히 '센과 치히로의 행방불명', '어벤져스: 엔드게임', '토이 스토리'처럼 띄어쓰기나 콜론(:) 등이 포함된 텍스트는 브라우저가 드래그 앤 드롭 영역이나 텍스트 선택 영역으로 처리할 때 일반 단어보다 더 복잡하게 인식하여, 커스텀 ID 대신 제목 텍스트가 그대로 전달될 확률이 높습니다.
+
+데이터를 찾지 못해 무시됨
+
+프로그램은 전달받은 값을 'ID'라고 생각하고 state.items.find(...)로 영화를 찾으려고 합니다. 하지만 "토이 스토리"나 "센과 치히로의 행방불명"이라는 ID는 존재하지 않기 때문에('m8' 등의 형식이여야 하므로), 영화를 찾지 못하고 그대로 함수를 종료(return)해 버려 카드가 움직이지 않게 됩니다.
+(참고로 클릭해서 옮기는 방식은 selected 변수를 직접 참조하기 때문에 띄어쓰기와 무관하게 정상 작동했던 것입니다.)
+
+🛠️ 이 원인이 맞는지 개발자 도구에서 확인하는 방법
+브라우저의 개발자 도구(Console)를 사용하면 드래그할 때 실제로 어떤 데이터가 옮겨지고 있는지 직접 확인할 수 있습니다. 아래 순서대로 따라 해 보세요.
+
+브라우저에서 영화_수정전.html 파일을 엽니다.
+
+키보드에서 F12를 누르거나 화면을 마우스 우클릭하여 [검사(Inspect)]를 누른 뒤, [콘솔(Console)] 탭으로 이동합니다.
+
+콘솔 창 입력란에 아래 코드를 그대로 복사해서 붙여넣고 Enter를 칩니다. (드래그해서 놓을 때 어떤 데이터가 넘어오는지 콘솔에 찍어주는 감시 코드입니다.)
+
+JavaScript
+document.addEventListener('drop', e => {
+  console.log('📦 드롭될 때 전달된 데이터:', JSON.stringify(e.dataTransfer.getData('text/plain')));
+});
+이제 다음 테스트를 해봅니다:
+
+'기생충'(띄어쓰기 없는 영화)을 드래그해서 등급 칸에 놓아봅니다. 콘솔 창에 무엇이 찍히는지 확인해 보세요.
+
+'토이 스토리'나 '어벤져스: 엔드게임'(띄어쓰기가 있는 영화)을 드래그해서 등급 칸에 놓아봅니다. 콘솔 창에 찍히는 값을 비교해 보세요.
+
+결과 확인:
+
+정상적이라면 코드에서 지정한 ID("m1", "m8" 등)가 찍혀야 하지만, 띄어쓰기가 있는 영화를 드래그했을 때 ID 대신 영화 제목("토이 스토리" 등)이 그대로 찍히거나 빈 값이 찍히는 것을 확인할 수 있습니다.
+
+이 방법을 통해 브라우저가 ID 대신 텍스트를 전달하고 있었다는 원인을 직접 눈으로 명확하게 검증하실 수 있습니다.
+
+"이 문제만 고쳐서 전체 HTML 코드를 줘"
+
+제공해주신 기획서와 코드를 바탕으로, 띄어쓰기가 있는 영화 제목도 드래그 앤 드롭으로 정상적으로 이동할 수 있도록 수정한 전체 HTML 코드입니다.
+
+브라우저의 기본 텍스트 드래그 동작이 ID 대신 글자(텍스트)를 가로채는 문제를 방지하도록 코드를 보완하였습니다. 아래 전체 코드를 복사해서 사용해 보세요.
+
+HTML
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>내 영화 티어리스트</title>
+  <style>
+    :root { --paper:#faf8f3; --ink:#242922; --muted:#5f685d; --line:#d9dad1; --green:#276453; --sage:#e3eee7; --peach:#f2e6dc; }
+    * { box-sizing:border-box; }
+    body { margin:0; color:var(--ink); background:var(--paper); font-family:system-ui,-apple-system,sans-serif; line-height:1.6;  }
+    main { width:min(100% - 32px,860px); margin:32px auto 48px; }
+    header { display:flex; align-items:start; justify-content:space-between; gap:20px; flex-wrap:wrap; }
+    h1 { margin:0; font-size:clamp(26px,5vw,34px); line-height:1.25; letter-spacing:-.03em; }
+    .sub { margin:10px 0 0; color:var(--muted); max-width:46ch; }
+    .tools { display:flex; flex-wrap:wrap; gap:8px; width:100%; margin-top:20px; }
+    .tools input { min-width:0; flex:1 1 160px; border:1.5px solid var(--line); border-radius:12px; padding:11px 12px; font:inherit; }
+    button { font:inherit; cursor:pointer; }
+    .tools button { padding:10px 15px; border:1px solid var(--green); border-radius:12px; font-weight:700; background:var(--green); color:#fff; }
+    .tools .reset { color:var(--green); background:#fff; }
+    #message { min-height:26px; margin:14px 0; font-size:14px; color:var(--muted); }
+    .tiers { display:grid; gap:10px; }
+    .row { display:flex; min-height:90px; background:#fff; border:1.5px solid var(--line); border-radius:14px; overflow:hidden; }
+    .row.over { outline:3px solid var(--green); outline-offset:1px; }
+    .label { width:64px; flex-shrink:0; border:0; color:white; font-size:26px; font-weight:800; padding:12px 4px; }
+    .S .label { background:#a55239; } .A .label { background:#b4763e; } .B .label { background:#276453; } .C .label { background:#67725d; }
+    .drop { flex:1; min-width:0; display:flex; flex-wrap:wrap; align-content:flex-start; gap:9px; padding:12px; min-height:88px; }
+    .pool { margin-top:22px; }
+    .pool-head { margin:0 0 8px; border:0; padding:0; background:transparent; color:var(--muted); font-size:17px; font-weight:700; text-align:left; }
+    #pool { border:1.5px dashed var(--line); border-radius:14px; background:#fff; }
+    .card { width:98px; min-height:62px; padding:8px; border:1px solid transparent; border-radius:10px; font-size:14px; font-weight:650; line-height:1.35; overflow-wrap:anywhere; color:var(--ink); cursor:grab; }
+    .card[aria-pressed="true"] { outline:3px solid var(--green); outline-offset:2px; }
+    .count { display:block; font-size:14px; font-weight:600; }
+    .note { font-size:13px; color:var(--muted); margin-top:18px; }
+    :focus-visible { outline:3px solid #ba613a; outline-offset:3px; }
+    @media(max-width:420px) { .label { width:48px; } .card { width:90px; } .drop { padding:10px; gap:8px; } }
+  </style>
+</head>
+<body>
+  <main>
+    <header><div><h1>내 영화 티어리스트</h1><p class="sub">영화를 선택한 뒤 옮길 등급 글자를 눌러 주세요. 카드를 끌어서 놓아도 됩니다.</p></div></header>
+    <form class="tools" id="add-form">
+      <input id="title" aria-label="영화 제목" placeholder="영화 제목 추가" maxlength="80">
+      <button type="submit">추가</button>
+      <button type="button" class="reset" id="reset">처음으로</button>
+    </form>
+    <p id="message" role="status">영화를 선택해 S·A·B·C로 나누어 보세요.</p>
+    <section class="tiers" id="tiers" aria-label="영화 등급"></section>
+    <section class="pool" aria-label="아직 안 정한 영화">
+      <button class="pool-head" id="pool-label" type="button" aria-label="미분류로 옮기기">아직 안 정한 영화</button>
+      <div class="drop" id="pool" data-tier="pool"></div>
+    </section>
+    <p class="note">같은 브라우저에서 이 파일을 다시 열면 정리한 목록이 남습니다. 다른 사람에게 파일을 보내도 내 입력 내역까지 전달되지는 않습니다.</p>
+  </main>
+  <script>
+    const KEY = "codyssey-activity-04-v2";
+    const LEVELS = ['S', 'A', 'B', 'C', 'pool'];
+    const TITLES = ["기생충","인터스텔라","라라랜드","센과 치히로의 행방불명","어벤져스: 엔드게임","범죄도시","타이타닉","토이 스토리"];
+    const COLORS = ["#f2e6dc","#e3eee7","#ede7f6","#fcefd9","#e2ecf4","#f6e3e3"];
+    const initial = () => ({ nextId: TITLES.length + 1, items: TITLES.map((title,index) => ({ id: 'm' + (index + 1), title, tier: 'pool' })) });
+    let state = initial();
+    let selected = null;
+    try {
+      const stored = JSON.parse(localStorage.getItem(KEY) || 'null');
+      if (stored && Number.isSafeInteger(stored.nextId) && Array.isArray(stored.items)
+          && stored.items.every(item => typeof item.id === 'string' && typeof item.title === 'string' && LEVELS.includes(item.tier))) state = stored;
+    } catch {}
+    function showMessage(message) { document.querySelector('#message').textContent = message; }
+    function save() {
+      try { localStorage.setItem(KEY, JSON.stringify(state)); }
+      catch { showMessage('이 브라우저에서는 저장하지 못했어요. 현재 화면에서 확인한 내용과 다시 열어 확인한 내용을 구분해 주세요.'); }
+    }
+    function move(id,tier) {
+      const item = state.items.find(item => item.id === id);
+      if (!item || !LEVELS.includes(tier)) return;
+      item.tier = tier; selected = null; save(); render();
+      showMessage((item.title || '영화') + '를 옮겼어요.');
+    }
+    function card(item,index) {
+      const element = document.createElement('button');
+      element.type = 'button'; element.className = 'card'; element.draggable = true;
+      element.textContent = item.title || ' '; element.dataset.id = item.id;
+      element.style.backgroundColor = COLORS[index % COLORS.length];
+      element.setAttribute('aria-label',item.title || '영화 카드');
+      element.setAttribute('aria-pressed',String(selected === item.id));
+      element.addEventListener('click',event => {
+        event.stopPropagation(); selected = selected === item.id ? null : item.id; render();
+        showMessage(selected ? (item.title || '영화') + '를 선택했어요.' : '선택을 해제했어요.');
+      });
+      element.addEventListener('dragstart',event => { 
+        event.dataTransfer.setData('text/plain',item.id);
+        event.dataTransfer.effectAllowed = 'move';
+      });
+      return element;
+    }
+    function wireDrop(element,tier) {
+      element.addEventListener('dragover',event => { event.preventDefault(); event.dataTransfer.dropEffect = 'move'; element.closest('.row')?.classList.add('over'); });
+      element.addEventListener('dragleave',() => element.closest('.row')?.classList.remove('over'));
+      element.addEventListener('drop',event => { 
+        event.preventDefault(); 
+        element.closest('.row')?.classList.remove('over');
+        let id = event.dataTransfer.getData('text/plain');
+        if (!state.items.some(item => item.id === id)) {
+          const found = state.items.find(item => item.title === id);
+          if (found) id = found.id;
+        }
+        move(id,tier); 
+      });
+      element.onclick = () => { if (selected) move(selected,tier); };
+    }
+    function render() {
+      const tiers = document.querySelector('#tiers'); tiers.replaceChildren();
+      for (const tier of LEVELS.filter(value => value !== 'pool')) {
+        const row = document.createElement('div'); row.className = 'row ' + tier;
+        const label = document.createElement('button'); label.type = 'button'; label.className = 'label';
+        label.textContent = tier; label.setAttribute('aria-label',tier + '등급으로 옮기기');
+        label.addEventListener('click',() => { if (selected) move(selected,tier); else showMessage('먼저 영화 카드를 선택해 주세요.'); });
+        
+        const drop = document.createElement('div'); drop.className = 'drop'; drop.dataset.tier = tier;
+        state.items.forEach((item,index) => { if (item.tier === tier) drop.append(card(item,index)); });
+        wireDrop(drop,tier); row.append(label,drop); tiers.append(row);
+      }
+      const pool = document.querySelector('#pool'); pool.replaceChildren();
+      state.items.forEach((item,index) => { if (item.tier === 'pool') pool.append(card(item,index)); });
+      
+    }
+    wireDrop(document.querySelector('#pool'),'pool');
+    document.querySelector('#pool-label').addEventListener('click',() => { if (selected) move(selected,'pool'); else showMessage('먼저 영화 카드를 선택해 주세요.'); });
+    document.querySelector('#add-form').addEventListener('submit',event => {
+      event.preventDefault(); const input = document.querySelector('#title'); const title = input.value.trim();
+      if (!title) { showMessage('영화 제목을 입력해 주세요.'); input.focus(); return; }
+      if (state.items.some(item => item.title === title)) { showMessage('이미 있는 영화 제목이에요. 다른 제목을 넣어 주세요.'); return; }
+      state.items.push({ id: 'm' + state.nextId++, title, tier: 'pool' });
+      save(); render(); input.value = ''; showMessage('영화를 추가했어요.'); input.focus();
+    });
+    document.querySelector('#reset').addEventListener('click',() => {
+      state = initial(); selected = null; document.querySelector('#title').value = ''; save(); render(); showMessage('처음 목록으로 돌아왔어요.');
+    });
+    render();
+  </script>
+</body>
+</html>
