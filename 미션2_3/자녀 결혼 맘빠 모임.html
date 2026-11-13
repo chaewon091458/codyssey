@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>자녀 결혼 맘빠 모임 정보 공유방</title>
+    <style>
+        body { font-family: 'Malgun Gothic', sans-serif; margin: 0; padding: 20px; background-color: #fdf6f6; color: #333; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        h1 { color: #d63384; text-align: center; margin-bottom: 10px; }
+        .intro { text-align: center; color: #666; margin-bottom: 30px; }
+        .card { border: 1px solid #f1d3d3; padding: 20px; margin-bottom: 20px; border-radius: 8px; background: #fff9f9; }
+        .card h3 { margin-top: 0; color: #b02a37; }
+        .btn { display: inline-block; padding: 8px 16px; background: #d63384; color: white; text-decoration: none; border-radius: 4px; font-size: 14px; border: none; cursor: pointer; font-family: inherit; }
+        .btn:hover { background: #b02a37; }
+
+        /* 팝업(모달) 스타일 */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 15px;
+            box-sizing: border-box;
+        }
+        .modal-overlay.active {
+            display: flex;
+        }
+        .modal-content {
+            background: #fff;
+            width: 100%;
+            max-width: 600px;
+            max-height: 85vh;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            animation: popIn 0.2s ease-out;
+        }
+        @keyframes popIn {
+            from { transform: scale(0.95); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        .modal-header {
+            background: #d63384;
+            color: white;
+            padding: 16px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .modal-header h2 {
+            margin: 0;
+            font-size: 18px;
+        }
+        .close-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            line-height: 1;
+            cursor: pointer;
+            padding: 0 4px;
+        }
+        .close-btn:hover {
+            opacity: 0.8;
+        }
+        .modal-body {
+            padding: 20px;
+            overflow-y: auto;
+        }
+        .checklist-section {
+            margin-bottom: 20px;
+        }
+        .checklist-section h4 {
+            margin: 0 0 10px 0;
+            color: #b02a37;
+            border-bottom: 1px solid #f1d3d3;
+            padding-bottom: 6px;
+            font-size: 16px;
+        }
+        .checklist-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            margin-bottom: 8px;
+            font-size: 14px;
+            line-height: 1.5;
+            cursor: pointer;
+        }
+        .checklist-item input[type="checkbox"] {
+            margin-top: 4px;
+            accent-color: #d63384;
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+        .checklist-item input[type="checkbox"]:checked + span {
+            text-decoration: line-through;
+            color: #999;
+        }
+        .tip-box {
+            background: #fff9f9;
+            border: 1px solid #f1d3d3;
+            border-radius: 8px;
+            padding: 12px 15px;
+            font-size: 13px;
+            color: #555;
+            margin-top: 10px;
+        }
+        .modal-footer {
+            padding: 12px 20px;
+            border-top: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #fafafa;
+        }
+        .progress-text {
+            font-size: 13px;
+            color: #666;
+            font-weight: bold;
+        }
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 7px 14px;
+            border-radius: 4px;
+            font-size: 13px;
+            cursor: pointer;
+            margin-right: 6px;
+        }
+        .btn-secondary:hover { background: #5a6268; }
+
+        @media (max-width: 600px) {
+            body { padding: 10px; }
+            .container { padding: 15px; }
+            .modal-content { max-height: 90vh; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>자녀 결혼 맘빠 모임 정보 공유방</h1>
+        <p class="intro">자녀의 행복한 결혼 준비를 함께 고민하고 알짜 정보를 나누는 부모님들의 공간입니다.</p>
+        
+        <div class="card">
+            <h3>상견례 장소 추천 리스트</h3>
+            <p>조용하고 분위기 좋은 상견례 전문 한식당 및 코스요리 장소 정보를 모았습니다.</p>
+            <a href="https://www.naver.com" target="_blank" class="btn">정보 보기</a>
+        </div>
+
+        <div class="card">
+            <h3>인기 웨딩홀 & 예식장 예약 팁</h3>
+            <p>지역별 선호도 높은 예식장 비교와 상담 예약 시 꼭 체크해야 할 사항 안내.</p>
+            <a href="https://www.google.com" target="_blank" class="btn">정보 보기</a>
+        </div>
+
+        <div class="card">
+            <h3>혼수 및 예단·예물 체크리스트 (사용자 피드백 반영)</h3>
+            <p>준비 과정에서 빠뜨리기 쉬운 품목과 예산 편성 요령을 체크리스트로 확인하세요.</p>
+            <button type="button" class="btn" onclick="openChecklistModal()">정보 보기</button>
+        </div>
+    </div>
+
+    <!-- 혼수 및 예단·예물 체크리스트 팝업창 -->
+    <div id="checklistModal" class="modal-overlay" onclick="handleOverlayClick(event)">
+        <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+            <div class="modal-header">
+                <h2 id="modalTitle">혼수 및 예단·예물 체크리스트</h2>
+                <button type="button" class="close-btn" onclick="closeChecklistModal()" aria-label="닫기">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="checklist-section">
+                    <h4>1. 가전·가구 (혼수 핵심 품목)</h4>
+                    <label class="checklist-item"><input type="checkbox" onchange="updateProgress()"><span>대형 가전 (냉장고, 세탁기/건조기, TV, 에어컨) - 신혼집 실측 후 계약</span></label>
+                    <label class="checklist-item"><input type="checkbox" onchange="updateProgress()"><span>생활·주방 가전 (식기세척기, 로봇청소기, 전자레인지/오븐, 밥솥)</span></label>
+                    <label class="checklist-item"><input type="checkbox" onchange="updateProgress()"><span>침실·거실 가구 (침대 프레임/매트리스, 소파, 식탁 세트, 붙박이장)</span></label>
+                    <label class="checklist-item"><input type="checkbox" onchange="updateProgress()"><span>주방용품 및 침구류 (냄비/프라이팬 세트, 식기, 차렵이불 및 패드)</span></label>
+                </div>
+
+                <div class="checklist-section">
+                    <h4>2. 예단 준비 (양가 합의 기준)</h4>
+                    <label class="checklist-item"><input type="checkbox" onchange="updateProgress()"><span>예단 생략 여부 및 현금 예단(봉채비) 규모 양가 사전 조율</span></label>
+                    <label class="checklist-item"><input type="checkbox" onchange="updateProgress()"><span>현물 예단 (이불, 반상기, 은수저 세트 중 생략 또는 간소화 선택)</span></label>
+                    <label class="checklist-item"><input type="checkbox" onchange="updateProgress()"><span>예단봉투·보자기 포장 및 정성스러운 손편지 준비</span></label>
+                    <label class="checklist-item"><input type="checkbox" onchange="updateProgress()"><span>양가 부모님 혼주 한복(맞춤/대여) 및 예복·구두</span></label>
+                </div>
+
+                <div class="checklist-section">
+                    <h4>3. 예물 준비</h4>
+                    <label class="checklist-item"><input type="checkbox" onchange="updateProgress()"><span>웨딩밴드 (커플링) - 제작 기간 고려해 예식 최소 2~3개월 전 주문</span></label>
+                    <label class="checklist-item"><input type="checkbox" onchange="updateProgress()"><span>신부 예물 (다이아반지 또는 패션 세트 등 실용성 위주 선택)</span></label>
+                    <label class="checklist-item"><input type="checkbox" onchange="updateProgress()"><span>신랑 예물 (예물 시계 또는 맞춤 정장/예복 세트)</span></label>
+                </div>
+
+                <div class="tip-box">
+                    <strong>💡 맘빠 모임 실전 팁 (피드백 반영):</strong><br>
+                    • 최근에는 형식적인 현물 예단보다 양가 합의하에 <strong>생략하거나 실용적인 현금/가전 보탬</strong>으로 대체하는 추세입니다.<br>
+                    • 가전은 백화점·베스트샵·디지털프라자 등 <strong>지점별 오픈점/웨딩박람회 견적 비교</strong> 후 한곳에서 패키지 혜택을 받는 것이 유리합니다.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <span id="progressText" class="progress-text">완료: 0 / 11 항목</span>
+                <div>
+                    <button type="button" class="btn-secondary" onclick="resetChecklist()">초기화</button>
+                    <button type="button" class="btn" onclick="closeChecklistModal()">닫기</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const modal = document.getElementById('checklistModal');
+
+        function openChecklistModal() {
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+            updateProgress();
+        }
+
+        function closeChecklistModal() {
+            modal.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        function handleOverlayClick(event) {
+            if (event.target === modal) {
+                closeChecklistModal();
+            }
+        }
+
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape' && modal.classList.contains('active')) {
+                closeChecklistModal();
+            }
+        });
+
+        function updateProgress() {
+            const checkboxes = modal.querySelectorAll('input[type="checkbox"]');
+            const checkedCount = modal.querySelectorAll('input[type="checkbox"]:checked').length;
+            document.getElementById('progressText').textContent = `완료: ${checkedCount} / ${checkboxes.length} 항목`;
+        }
+
+        function resetChecklist() {
+            const checkboxes = modal.querySelectorAll('input[type="checkbox"]');
+            checkboxes.forEach(cb => cb.checked = false);
+            updateProgress();
+        }
+    </script>
+</body>
+</html>
